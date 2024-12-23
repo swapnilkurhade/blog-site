@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Cart from '../models/cart.js'
 
 
@@ -37,8 +38,6 @@ export const addCart = async (req, res) => {
                         }
                     )
                 }
-
-
             }
 
         } else {
@@ -50,7 +49,7 @@ export const addCart = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        
+
         res.status(500).json({ success: false, message: 'Failed to add to card', error })
     }
 
@@ -58,11 +57,74 @@ export const addCart = async (req, res) => {
 
 export const getCartByUser = async (req, res) => {
     try {
-        const cart = await Cart.find({ userId: req.params.id })
-        console.log(cart);
-        
+
+        const cart = await Cart.aggregate([
+            {
+                $match: {
+                    userId: new mongoose.Types.ObjectId(req.params.id),
+                }
+            },
+            {
+                $unwind: "$items"
+            },
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'items.productId',
+                    foreignField: '_id',
+                    as: 'productDetails'
+                }
+            },
+            {
+                $unwind: '$productDetails'
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    userId: { $first: "$userId" },
+                    items: {
+                        $push: {
+                            product: "$productDetails",
+                            quantity: "$items.quantity"
+                        }
+                    },
+                    createdAt: { $first: "$createdAt" }
+                }
+            },
+            {
+                $limit: 1
+            }
+        ]);
+
         res.status(200).json(cart)
     } catch (error) {
         console.log('error', error);
     }
+}
+
+export const removeProductByUser = async (req, res) => {
+    const { userId, productId } = req.body;
+    try {
+        const rmCart = await Cart.updateOne(
+            { userId: new mongoose.Types.ObjectId(userId)  },
+            {
+                $pull : {
+                    items : {
+                        productId : new mongoose.Types.ObjectId(productId)
+                    }
+                }
+            }
+        )
+
+        if(rmCart.modifiedCount > 0){
+            res.status(200).json({ success: true, message : 'product removed from cart...'})
+        }else{
+            res.status(404).json({ success: false, message : 'product not found...'})
+        }
+
+    } catch (error) {
+        console.log('error', error);
+        res.status(500).json({ success: false, message: 'Failed to remove from cart...' })
+    }
+
 }
