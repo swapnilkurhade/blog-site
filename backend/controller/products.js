@@ -1,10 +1,11 @@
+
 import products from "../models/products.js";
 
-export const getAllProducts = async(req, res) =>{
-    try{    
-        const product  = await products.find();
+export const getAllProducts = async (req, res) => {
+    try {
+        const product = await products.find();
         res.status(200).json(product)
-    }catch(error){
+    } catch (error) {
         console.log('error', error);
     }
 }
@@ -20,11 +21,20 @@ export const createProduct = (( req, res )=>{
     }
 })
 
-export const getProductByType = async(req, res) =>{
-    try{
-        const product = await products.find({ type: req.params.type})
+export const getProductByType = async (req, res) => {
+    try {
+        const product = await products.find({ type: req.params.type })
         res.status(200).json(product)
-    }catch(error){
+    } catch (error) {
+        console.log('error', error);
+    }
+}
+
+export const removeProduct = async (req, res) => {
+    try {
+        const product = await products.findOneAndDelete({ _id: req.params.id })
+        res.status(200).json(product)
+    } catch (error) {
         console.log('error', error);
     }
 }
