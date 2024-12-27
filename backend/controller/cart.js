@@ -7,7 +7,7 @@ export const addCart = async (req, res) => {
 
     try {
 
-        const existingCard = await Cart.findOne({ 'userId': userId })
+        const existingCard = await Cart.findOne({ 'userId': userId , isCompleted : false})
 
         if (existingCard) {
 
@@ -30,7 +30,7 @@ export const addCart = async (req, res) => {
                     )
                 } else {
                     await Cart.updateOne(
-                        { userId },
+                        { userId , isCompleted : false},
                         {
                             $push: {
                                 items: newItem
@@ -62,6 +62,7 @@ export const getCartByUser = async (req, res) => {
             {
                 $match: {
                     userId: new mongoose.Types.ObjectId(req.params.id),
+                    isCompleted : false
                 }
             },
             {
