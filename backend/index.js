@@ -13,15 +13,23 @@ app.use(express.json());
 app.use(cors())
 
 // Database connection
-const connectToDB = () =>{
-    mongoose.connect('mongodb://127.0.0.1:27017/swapmart').then(()=>{
+const connectToDB = () => {
+    mongoose.connect('mongodb://127.0.0.1:27017/swapmart').then(() => {
         console.log("database connected")
-    }).catch((e)=>{
+    }).catch((e) => {
         console.log('error occured')
     })
 }
 
 connectToDB();
+
+// Middleware
+
+app.use((req, res, next) => {
+    console.log('Hello Middleare');
+
+    next();
+})
 
 // Routes
 app.use('/products', productRoutes)
@@ -31,6 +39,6 @@ app.use('/order', orderRoute)
 
 
 
-app.listen(5000, ()=>{
+app.listen(5000, () => {
     console.log("Server is running on port 5000");
 })
